@@ -1,7 +1,8 @@
-import ListGroup from "./components/ListGroup";
+import ListGroup from "./components/ListGroup/";
 import Alert from "./components/Alert";
 import { Button } from "./components/Button";
 import { useState } from "react";
+import LikeIcon from "./components/LikeIcon";
 
 function App() {
   let items = ["London", "Paris", "New York", "Tokyo"];
@@ -12,6 +13,7 @@ function App() {
 
   return (
     <div>
+      <LikeIcon onClick={() => console.log("clicked")} />
       {alertVisible && (
         <Alert onClose={() => setVisibility(false)}>My Alert</Alert>
       )}
