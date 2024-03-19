@@ -6,6 +6,11 @@ import LikeIcon from "./components/LikeIcon";
 import { NavBar } from "./components/NavBar";
 import Cart from "./components/Cart";
 import ExpandableText from "./components/ExpandableText";
+import { Form } from "./components/Form";
+import ExpenseList from "./expense-tracker/components/ExpenseList";
+import ExpenseFilter from "./expense-tracker/components/ExpenseFilter";
+import ExpenseForm from "./expense-tracker/components/ExpenseForm";
+import categories from "./expense-tracker/categories";
 
 function App() {
   // updating objects, arrays and array of objects exercise
@@ -57,8 +62,46 @@ function App() {
   // passing state to children components: navbar & cart
   const [cartItems, setCartItems] = useState(["Product 1", "Product 2"]);
 
+  //expense form exercise
+
+  const [expenses, setExpenses] = useState([
+    { id: 1, description: "Gas", amount: 80, category: "Utilities" },
+    { id: 2, description: "Shopping", amount: 50, category: "Groceries" },
+    {
+      id: 3,
+      description: "Cinema tickets",
+      amount: 35,
+      category: "Entertainment",
+    },
+    { id: 4, description: "Internet", amount: 40, category: "Utilities" },
+  ]);
+
+  const [selectedCategory, setSelectedCategory] = useState("");
+  // if selectedCategory has a value we call all expenses in the given category or if it's empty show all expenses.
+  const visibleExpenses = selectedCategory
+    ? expenses.filter((expense) => expense.category === selectedCategory)
+    : expenses;
+
   return (
     <div>
+      <div className="mb-5">
+        <ExpenseForm
+          onSubmit={(expense) =>
+            setExpenses([...expenses, { ...expense, id: expenses.length + 1 }])
+          }
+        />
+      </div>
+      <div className="mb-3">
+        <ExpenseFilter
+          onSelectCategory={(category) => setSelectedCategory(category)}
+        />
+      </div>
+      <ExpenseList
+        expenses={visibleExpenses}
+        onDelete={(id) =>
+          setExpenses(expenses.filter((expense) => expense.id !== id))
+        }
+      />
       <NavBar cartItemsCount={cartItems.length} />
       <Cart cartItems={cartItems} onClear={() => setCartItems([])}></Cart>
       <ExpandableText>
@@ -85,6 +128,7 @@ function App() {
         heading={"Cities"}
         onSelectItem={handleSelectItem}
       />
+      <Form />
     </div>
   );
 }
