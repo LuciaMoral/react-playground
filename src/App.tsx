@@ -1,7 +1,7 @@
 import ListGroup from "./components/ListGroup/";
 import Alert from "./components/Alert";
 import { Button } from "./components/Button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LikeIcon from "./components/LikeIcon";
 import { NavBar } from "./components/NavBar";
 import Cart from "./components/Cart";
@@ -11,6 +11,11 @@ import ExpenseList from "./expense-tracker/components/ExpenseList";
 import ExpenseFilter from "./expense-tracker/components/ExpenseFilter";
 import ExpenseForm from "./expense-tracker/components/ExpenseForm";
 import categories from "./expense-tracker/categories";
+import ProductList from "./components/ProductList";
+
+import { CanceledError } from "./services/api-client";
+import userService, { User } from "./services/user-service";
+import useUsers from "./hooks/useUsers";
 
 function App() {
   // updating objects, arrays and array of objects exercise
@@ -82,8 +87,92 @@ function App() {
     ? expenses.filter((expense) => expense.category === selectedCategory)
     : expenses;
 
+  // backend exercise Product list
+  const [categ, setCateg] = useState("");
+  // using a custom hook
+  const { users, error, isLoading, setUsers, setError, setLoading } =
+    useUsers();
+  //deleting data
+  const deleteUser = (user: User) => {
+    const originalUsers = [...users];
+    setUsers(users.filter((u) => u.id !== user.id));
+    // to persist changes
+    userService.delete(user.id).catch((err) => {
+      setError(err.message);
+      setUsers(originalUsers);
+    });
+  };
+
+  // adding data
+  const addUser = () => {
+    const originalUsers = [...users];
+    const newUser = { id: 0, name: "Luis" };
+    setUsers([newUser, ...users]);
+
+    userService
+      .create(newUser)
+      // .then((res) => setUsers([res.data, ...users])); OR like this
+      .then(({ data: savedUser }) => setUsers([savedUser, ...users]))
+      .catch((err) => {
+        setError(err.message);
+        setUsers(originalUsers);
+      });
+  };
+
+  //updating data
+
+  const updateUser = (user: User) => {
+    const originalUsers = [...users];
+    const updatedUser = { ...user, name: user.name + "!" };
+    setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
+    userService.update(updatedUser).catch((err) => {
+      setError(err.message);
+      setUsers(originalUsers);
+    });
+  };
+
   return (
     <div>
+      {error && <p className="text-danger">{error}</p>}
+      {isLoading && <div className="spinner-border"></div>}
+      <button className="btn btn-primary mb-3" onClick={addUser}>
+        Add
+      </button>
+      <ul className="list-group">
+        {users.map((user) => (
+          <li
+            key={user.id}
+            className="list-group-item d-flex justify-content-between"
+          >
+            {user.name}
+            <div>
+              <button
+                className="btn btn-outline-secondary mx-3"
+                onClick={() => updateUser(user)}
+              >
+                Update
+              </button>
+              <button
+                className="btn btn-outline-danger"
+                onClick={() => deleteUser(user)}
+              >
+                Delete
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <select
+        name=""
+        id=""
+        className="form-select"
+        onChange={(event) => setCateg(event.target.value)}
+      >
+        <option value=""></option>
+        <option value="Clothing">Clothing</option>
+        <option value="Household">Household</option>
+      </select>
+      <ProductList categ={categ}></ProductList>
       <div className="mb-5">
         <ExpenseForm
           onSubmit={(expense) =>
